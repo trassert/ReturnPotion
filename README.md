@@ -1,6 +1,6 @@
 # Return Potion
 
-Please rate this plugin with an star!
+# Please rate this plugin with an star!
 
 **This project is inspired by Terraria and my favorite RU server - [Luminto](https://t.me/lumintomc)!**
 
