@@ -1,24 +1,23 @@
 # RecallPotion Plugin Configuration
-
 messages:
-  potion-obtained: "&a✨ Вы получили зелье возврата! Используйте его, чтобы вернуться домой."
-  potion-used: "&6🏠 Телепортация к точке респавна... ✨"
-  no-home-set: "&cУ вас не установлена точка респавна! Поспите в кровати или используйте /spawnpoint."
-  not-enough-xp: "&cНедостаточно опыта! Требуется 8 уровней опыта."
-  portal-extract-success: "&a✨ Вы извлекли портальную жидкость! (-8 уровней опыта)"
-  config-reloaded: "&aКонфигурация перезагружена!"
-  no-permission: "&cУ вас нет прав для выполнения этой команды!"
+  potion-obtained: "&a✨ You've obtained a return potion! Use it to get back home."
+  potion-used: "&6🏠 Teleporting to your spawn point... ✨"
+  no-home-set: "&cYou don't have a spawn point set! Sleep in a bed or use /spawnpoint."
+  not-enough-xp: "&cNot enough XP! Requires 8 levels of experience."
+  portal-extract-success: "&a✨ You've extracted portal fluid! (-8 experience levels)"
+  config-reloaded: "&aConfiguration reloaded!"
+  no-permission: "&cYou don't have permission to use this command!"
 
 achievements:
   home-return:
-    title: "Домой, милый дом!"
-    description: "Используйте зелье возврата, чтобы вернуться домой"
+    title: "Home, Sweet Home!"
+    description: "Use a return potion to get back home"
     icon: "ENDER_EYE" # Material name for the icon
     frame: "task" # task, challenge, goal
     parent: "minecraft:adventure/root" # Parent advancement, e.g., minecraft:adventure/root
   portal-extract:
-    title: "Мастер порталов"
-    description: "Извлеките портальную жидкость из портала Края"
+    title: "Portal Master"
+    description: "Extract portal fluid from an End portal"
     icon: "END_PORTAL_FRAME" # Material name for the icon
     frame: "task"
     parent: "minecraft:adventure/root"
@@ -31,8 +30,8 @@ sounds:
 
 settings:
   xp-cost: 8
-  potion-name: "&d✨ Зелье возврата"
+  potion-name: "&d✨ Potion of Return"
   potion-lore:
-    - "&7Магическое зелье, которое"
-    - "&7телепортирует вас к точке респавна"
-    - "&e▶ ПКМ для использования"
+    - "&7A magical potion that"
+    - "&7teleports you back to your spawn point"
+    - "&e▶ Right-click to use"
