@@ -1,0 +1,21 @@
+name: RecallPotion
+version: '1.0.0'
+main: com.example.recallpotion.RecallPotionPlugin
+api-version: '1.21'
+description: A plugin that adds recall potions to Minecraft
+author: YourName
+
+commands:
+  recallpotion:
+    description: Recall potion plugin commands
+    usage: /recallpotion reload
+    permission: recallpotion.admin
+    aliases: [rp]
+
+permissions:
+  recallpotion.admin:
+    description: Allows access to admin commands
+    default: op
+  recallpotion.use:
+    description: Allows using recall potions
+    default: true
