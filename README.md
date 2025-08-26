@@ -1,5 +1,7 @@
 # Return Potion
 
+Please rate this plugin with an star!
+
 **This project is inspired by Terraria and my favorite RU server - [Luminto](https://t.me/lumintomc)!**
 
 About the potion: You can get it by right-clicking on the portal of the End. You will be charged 8 (config value) experience points, and you will receive it.
