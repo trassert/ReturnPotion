@@ -76,8 +76,11 @@ public class AdvancementManager {
     }
 
     private static class AdvancementJson {
+        @SuppressWarnings("unused")
         Display display;
+        @SuppressWarnings("unused")
         String parent;
+        @SuppressWarnings("unused")
         Criteria criteria;
 
         AdvancementJson(String title, String description, String iconMaterial, String frame, String parent) {
@@ -88,22 +91,46 @@ public class AdvancementManager {
     }
 
     private static class Display {
+        @SuppressWarnings("unused")
+        JsonElement title;
+        @SuppressWarnings("unused")
+        JsonElement description;
+        @SuppressWarnings("unused")
+        Icon icon;
+        @SuppressWarnings("unused")
+        String frame;
+        @SuppressWarnings("unused")
+        boolean show_toast = true;
+        @SuppressWarnings("unused")
+        boolean announce_to_chat = true;
+        @SuppressWarnings("unused")
+        boolean hidden = false;
+
         Display(String title, String description, String iconMaterial, String frame) {
-            new Icon(iconMaterial);
-            JsonParser.parseString("{\"text\":\"" + title + "\"}");
-            JsonParser.parseString("{\"text\":\"" + description + "\"}");
+            this.icon = new Icon(iconMaterial);
+            this.title = JsonParser.parseString("{\"text\":\"" + title + "\"}");
+            this.description = JsonParser.parseString("{\"text\":\"" + description + "\"}");
+            this.frame = frame;
         }
     }
 
     private static class Icon {
+        @SuppressWarnings("unused")
+        String id;
+
         Icon(String item) {
+            this.id = "minecraft:" + item;
         }
     }
 
     private static class Criteria {
+        @SuppressWarnings("unused")
+        Trigger trigger = new Trigger();
     }
 
     private static class Trigger {
+        @SuppressWarnings("unused")
+        String trigger = "minecraft:impossible";
     }
 
     public void grantHomeReturnAdvancement(Player player) {
