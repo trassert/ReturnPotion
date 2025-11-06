@@ -28,7 +28,7 @@ public class RecipeManager {
         recipe.setIngredient('W', Material.POTION);
         recipe.setIngredient('G', Material.SCULK);
         recipe.setIngredient('S', Material.SUNFLOWER);
-        recipe.setIngredient('E', Material.ENDER_EYE);
+        recipe.setIngredient('E', Material.ENDER_PEARL);
 
         plugin.getServer().addRecipe(recipe);
     }
