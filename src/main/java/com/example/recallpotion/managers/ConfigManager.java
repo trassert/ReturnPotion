@@ -61,6 +61,7 @@ public class ConfigManager {
         return config.getString("achievements." + advancement + ".parent", "minecraft:adventure/root");
     }
 
+    @SuppressWarnings("removal")
     public Sound getSound(String path) {
         try {
             return Sound.valueOf(config.getString("sounds." + path, "BLOCK_NOTE_BLOCK_PLING"));
