@@ -29,7 +29,6 @@ public class PlayerInteractListener implements Listener {
         Player player = event.getPlayer();
 
         if (event.getItem() != null && plugin.getRecipeManager().isRecallPotion(event.getItem())) {
-
             return;
         }
 
@@ -38,6 +37,11 @@ public class PlayerInteractListener implements Listener {
                 event.getClickedBlock().getType() == Material.END_PORTAL) {
 
             if (event.getHand() == EquipmentSlot.HAND) {
+                ItemStack itemInHand = player.getInventory().getItemInMainHand();
+                if (itemInHand.getType() != Material.GLASS_BOTTLE) {
+                    return;
+                }
+
                 if (player.getLevel() >= plugin.getConfigManager().getXpCost()) {
 
                     player.setLevel(player.getLevel() - plugin.getConfigManager().getXpCost());
