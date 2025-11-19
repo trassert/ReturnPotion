@@ -1,4 +1,3 @@
-# RecallPotion Plugin Configuration
 messages:
   potion-obtained: "&a✨ You've obtained a return potion! Use it to get back home."
   potion-used: "&6🏠 Teleporting to your spawn point... ✨"
@@ -7,27 +6,24 @@ messages:
   portal-extract-success: "&a✨ You've extracted portal fluid! (-8 experience levels)"
   config-reloaded: "&aConfiguration reloaded!"
   no-permission: "&cYou don't have permission to use this command!"
-
 achievements:
   home-return:
     title: "Home, Sweet Home!"
     description: "Use a return potion to get back home"
-    icon: "ENDER_EYE" # Material name for the icon
-    frame: "task" # task, challenge, goal
-    parent: "minecraft:adventure/root" # Parent advancement, e.g., minecraft:adventure/root
+    icon: "ENDER_EYE" 
+    frame: "task" 
+    parent: "minecraft:adventure/root" 
   portal-extract:
     title: "Portal Master"
     description: "Extract portal fluid from an End portal"
-    icon: "END_PORTAL_FRAME" # Material name for the icon
+    icon: "END_PORTAL_FRAME" 
     frame: "task"
     parent: "minecraft:adventure/root"
-
 sounds:
   potion-obtain: "BLOCK_ENCHANTMENT_TABLE_USE"
   potion-use: "ENTITY_ENDERMAN_TELEPORT"
   portal-extract: "BLOCK_PORTAL_AMBIENT"
-  achievement: "UI_TOAST_CHALLENGE_COMPLETE" # This sound is played by the advancement system itself, but kept for consistency if needed elsewhere
-
+  achievement: "UI_TOAST_CHALLENGE_COMPLETE" 
 settings:
   xp-cost: 8
   potion-name: "&d✨ Potion of Return"
