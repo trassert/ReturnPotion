@@ -12,7 +12,6 @@ public class PlayerConsumeListener implements Listener {
 
     public PlayerConsumeListener(RecallPotionPlugin plugin) {
         this.plugin = plugin;
-
         this.playerInteractListener = new PlayerInteractListener(plugin);
     }
 
@@ -20,13 +19,21 @@ public class PlayerConsumeListener implements Listener {
     public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
         if (plugin.getRecipeManager().isRecallPotion(event.getItem())) {
             event.setCancelled(true);
-            playerInteractListener.performRecallTeleport(event.getPlayer());
 
-            if (event.getItem().getAmount() > 1) {
-                event.getItem().setAmount(event.getItem().getAmount() - 1);
-            } else {
-                event.getPlayer().getInventory().setItem(event.getPlayer().getInventory().getHeldItemSlot(), null);
-            }
+            final var player = event.getPlayer();
+            final var item = event.getItem().clone();
+
+            player.getScheduler().run(plugin, scheduledTask -> {
+
+                playerInteractListener.performRecallTeleport(player);
+
+                if (item.getAmount() > 1) {
+                    item.setAmount(item.getAmount() - 1);
+                    player.getInventory().setItem(player.getInventory().getHeldItemSlot(), item);
+                } else {
+                    player.getInventory().setItem(player.getInventory().getHeldItemSlot(), null);
+                }
+            }, null);
         }
     }
 }

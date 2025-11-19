@@ -65,40 +65,35 @@ public class PlayerInteractListener implements Listener {
     }
 
     public void performRecallTeleport(Player player) {
-
         if (!player.hasPermission("recallpotion.use")) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
             return;
         }
-
         Location homeLocation = player.getBedSpawnLocation();
-        if (homeLocation == null) {
-            homeLocation = player.getWorld().getSpawnLocation();
-        }
 
         if (homeLocation == null) {
+
+            homeLocation = player.getLocation();
             player.sendMessage(plugin.getConfigManager().getMessage("no-home-set"));
             return;
         }
 
-        final Location departureLocation = player.getLocation().clone();
         final Location finalHomeLocation = homeLocation;
+        final Location departureLocation = player.getLocation().clone();
 
         player.sendMessage(plugin.getConfigManager().getMessage("potion-used"));
         player.playSound(player.getLocation(), plugin.getConfigManager().getSound("potion-use"), 1.0f, 1.0f);
 
         createTeleportParticles(player, departureLocation, true);
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            player.teleport(finalHomeLocation);
+        player.getScheduler().runDelayed(plugin, scheduledTask -> {
+            player.teleportAsync(finalHomeLocation);
 
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            player.getScheduler().runDelayed(plugin, scheduledTask2 -> {
                 createTeleportParticles(player, player.getLocation(), false);
-            }, 5L);
-
-            plugin.getAdvancementManager().grantHomeReturnAdvancement(player);
-        }, 20L);
-
+                plugin.getAdvancementManager().grantHomeReturnAdvancement(player);
+            }, null, 5L);
+        }, null, 20L);
     }
 
     private void createTeleportParticles(Player player, Location location, boolean scatter) {
