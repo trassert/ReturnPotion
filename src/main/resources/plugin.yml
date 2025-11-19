@@ -4,6 +4,7 @@ main: com.example.recallpotion.RecallPotionPlugin
 api-version: '1.21'
 description: A plugin that adds recall potions to Minecraft
 author: trassert
+folia-supported: true
 
 commands:
   recallpotion:
