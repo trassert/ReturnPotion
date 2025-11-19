@@ -1,41 +1,79 @@
 name: Сборка
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main, master ]
   workflow_dispatch:
 jobs:
-  build:
+  extract-version:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Set up JDK 21
+    - name: Get Maven version
+      id: get_version
+      run: |
+        # Для Maven
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
+    - name: Check if tag exists
+      id: check_tag
+      run: |
+        git fetch --tags
+        if git rev-parse "v${{ steps.get_version.outputs.VERSION }}" >/dev/null 2>&1; then
+          echo "TAG_EXISTS=true" >> $GITHUB_OUTPUT
+        else
+          echo "TAG_EXISTS=false" >> $GITHUB_OUTPUT
+        fi
+  build:
+    needs: extract-version
+    runs-on: ubuntu-latest
+    if: needs.extract-version.outputs.TAG_EXISTS == 'false'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Set up JDK
       uses: actions/setup-java@v3
       with:
         java-version: '21'
         distribution: 'temurin'
-    - name: Build with Maven
+    - name: Build
       run: mvn clean package
-    - name: Upload build artifacts
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: plugin-jar
+        name: plugin-v${{ needs.extract-version.outputs.VERSION }}
         path: target/*.jar
-  release:
-    needs: build
+  create-tag:
+    needs: [extract-version, build]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: needs.extract-version.outputs.TAG_EXISTS == 'false'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Download build artifacts
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create tag
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -a "v${{ needs.extract-version.outputs.VERSION }}" -m "Release v${{ needs.extract-version.outputs.VERSION }}"
+        git push origin "v${{ needs.extract-version.outputs.VERSION }}"
+  release:
+    needs: create-tag
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: plugin-jar
+        name: plugin-v${{ needs.create-tag.outputs.version }}
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: v${{ needs.create-tag.outputs.version }}
+        name: Release v${{ needs.create-tag.outputs.version }}
         files: "*.jar"
         generate_release_notes: true
       env:
