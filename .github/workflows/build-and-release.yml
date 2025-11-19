@@ -13,11 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Важно: получаем всю историю для работы с тегами
+        fetch-depth: 0
+        token: ${{ secrets.PAT }}  
     - name: Get Maven version
       id: get_version
       run: |
-        # Для Maven
         VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Detected version: $VERSION"
@@ -58,7 +58,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.PAT }}  
         fetch-depth: 0
     - name: Create tag
       run: |
@@ -85,4 +85,4 @@ jobs:
         files: "*.jar"
         generate_release_notes: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PAT }}  
