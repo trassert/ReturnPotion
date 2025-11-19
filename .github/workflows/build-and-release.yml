@@ -8,9 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.VERSION }}
+      tag_exists: ${{ steps.check_tag.outputs.TAG_EXISTS }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Важно: получаем всю историю для работы с тегами
     - name: Get Maven version
       id: get_version
       run: |
@@ -21,7 +24,6 @@ jobs:
     - name: Check if tag exists
       id: check_tag
       run: |
-        git fetch --tags
         if git rev-parse "v${{ steps.get_version.outputs.VERSION }}" >/dev/null 2>&1; then
           echo "TAG_EXISTS=true" >> $GITHUB_OUTPUT
         else
@@ -30,7 +32,7 @@ jobs:
   build:
     needs: extract-version
     runs-on: ubuntu-latest
-    if: needs.extract-version.outputs.TAG_EXISTS == 'false'
+    if: needs.extract-version.outputs.tag_exists == 'false'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -44,36 +46,42 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: plugin-v${{ needs.extract-version.outputs.VERSION }}
+        name: plugin-v${{ needs.extract-version.outputs.version }}
         path: target/*.jar
   create-tag:
-    needs: [extract-version, build]
+    needs: 
+      - extract-version
+      - build
     runs-on: ubuntu-latest
-    if: needs.extract-version.outputs.TAG_EXISTS == 'false'
+    if: needs.extract-version.outputs.tag_exists == 'false'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     - name: Create tag
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-        git tag -a "v${{ needs.extract-version.outputs.VERSION }}" -m "Release v${{ needs.extract-version.outputs.VERSION }}"
-        git push origin "v${{ needs.extract-version.outputs.VERSION }}"
+        git tag -a "v${{ needs.extract-version.outputs.version }}" -m "Release v${{ needs.extract-version.outputs.version }}"
+        git push origin "v${{ needs.extract-version.outputs.version }}"
   release:
-    needs: create-tag
+    needs: 
+      - extract-version
+      - create-tag
     runs-on: ubuntu-latest
+    if: needs.extract-version.outputs.tag_exists == 'false'
     steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: plugin-v${{ needs.create-tag.outputs.version }}
+        name: plugin-v${{ needs.extract-version.outputs.version }}
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ needs.create-tag.outputs.version }}
-        name: Release v${{ needs.create-tag.outputs.version }}
+        tag_name: v${{ needs.extract-version.outputs.version }}
+        name: Release v${{ needs.extract-version.outputs.version }}
         files: "*.jar"
         generate_release_notes: true
       env:
