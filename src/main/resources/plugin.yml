@@ -1,5 +1,5 @@
 name: RecallPotion
-version: '1.4.0'
+version: '1.4.1'
 main: com.example.recallpotion.RecallPotionPlugin
 api-version: '1.21'
 description: A plugin that adds recall potions to Minecraft
