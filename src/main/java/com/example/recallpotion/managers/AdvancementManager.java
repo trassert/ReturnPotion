@@ -3,8 +3,7 @@ package com.example.recallpotion.managers;
 import com.example.recallpotion.RecallPotionPlugin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -17,10 +16,10 @@ import java.util.logging.Level;
 public class AdvancementManager {
 
     private final RecallPotionPlugin plugin;
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private NamespacedKey homeReturnKey;
-    private NamespacedKey portalExtractKey;
+    private final NamespacedKey homeReturnKey;
+    private final NamespacedKey portalExtractKey;
 
     public AdvancementManager(RecallPotionPlugin plugin) {
         this.plugin = plugin;
@@ -29,38 +28,29 @@ public class AdvancementManager {
     }
 
     public void registerAdvancements() {
+        registerAdvancement(homeReturnKey, "home-return");
+        registerAdvancement(portalExtractKey, "portal-extract");
+    }
 
-        String homeReturnJson = createAdvancementJson(
-                plugin.getConfigManager().getAdvancementTitle("home-return"),
-                plugin.getConfigManager().getAdvancementDescription("home-return"),
-                plugin.getConfigManager().getAdvancementIcon("home-return"),
-                plugin.getConfigManager().getAdvancementFrame("home-return"),
-                plugin.getConfigManager().getAdvancementParent("home-return"));
+    private void registerAdvancement(NamespacedKey key, String configPath) {
+        var cfg = plugin.getConfigManager();
+        String json = createAdvancementJson(
+                cfg.getAdvancementTitle(configPath),
+                cfg.getAdvancementDescription(configPath),
+                cfg.getAdvancementIcon(configPath),
+                cfg.getAdvancementFrame(configPath),
+                cfg.getAdvancementParent(configPath));
+
         try {
-            Bukkit.getUnsafe().loadAdvancement(homeReturnKey, homeReturnJson);
-            plugin.getLogger().info("Registered advancement: " + homeReturnKey.getKey());
+            Bukkit.getUnsafe().loadAdvancement(key, json);
+            plugin.getLogger().info("Registered advancement: " + key.getKey());
         } catch (IllegalArgumentException e) {
             plugin.getLogger().log(Level.WARNING,
-                    "Failed to load home_return advancement (already exists?): " + e.getMessage());
-        }
-
-        String portalExtractJson = createAdvancementJson(
-                plugin.getConfigManager().getAdvancementTitle("portal-extract"),
-                plugin.getConfigManager().getAdvancementDescription("portal-extract"),
-                plugin.getConfigManager().getAdvancementIcon("portal-extract"),
-                plugin.getConfigManager().getAdvancementFrame("portal-extract"),
-                plugin.getConfigManager().getAdvancementParent("portal-extract"));
-        try {
-            Bukkit.getUnsafe().loadAdvancement(portalExtractKey, portalExtractJson);
-            plugin.getLogger().info("Registered advancement: " + portalExtractKey.getKey());
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().log(Level.WARNING,
-                    "Failed to load portal_extract advancement (already exists?): " + e.getMessage());
+                    "Advancement '" + key.getKey() + "' may already exist: " + e.getMessage());
         }
     }
 
     public void unregisterAdvancements() {
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             revokeAdvancement(player, homeReturnKey);
             revokeAdvancement(player, portalExtractKey);
@@ -72,65 +62,33 @@ public class AdvancementManager {
     }
 
     private String createAdvancementJson(String title, String description, Material icon, String frame, String parent) {
-        return gson.toJson(new AdvancementJson(title, description, icon.name().toLowerCase(), frame, parent));
+        JsonObject root = new JsonObject();
+
+        JsonObject display = new JsonObject();
+        display.add("title", createTextComponent(title));
+        display.add("description", createTextComponent(description));
+        display.addProperty("icon", "minecraft:" + icon.name().toLowerCase());
+        display.addProperty("frame", frame);
+        display.addProperty("show_toast", true);
+        display.addProperty("announce_to_chat", true);
+        display.addProperty("hidden", false);
+        root.add("display", display);
+
+        root.addProperty("parent", parent);
+
+        JsonObject criteria = new JsonObject();
+        JsonObject trigger = new JsonObject();
+        trigger.addProperty("trigger", "minecraft:impossible");
+        criteria.add("impossible", trigger);
+        root.add("criteria", criteria);
+
+        return GSON.toJson(root);
     }
 
-    private static class AdvancementJson {
-        @SuppressWarnings("unused")
-        Display display;
-        @SuppressWarnings("unused")
-        String parent;
-        @SuppressWarnings("unused")
-        Criteria criteria;
-
-        AdvancementJson(String title, String description, String iconMaterial, String frame, String parent) {
-            this.display = new Display(title, description, iconMaterial, frame);
-            this.parent = parent;
-            this.criteria = new Criteria();
-        }
-    }
-
-    private static class Display {
-        @SuppressWarnings("unused")
-        JsonElement title;
-        @SuppressWarnings("unused")
-        JsonElement description;
-        @SuppressWarnings("unused")
-        Icon icon;
-        @SuppressWarnings("unused")
-        String frame;
-        @SuppressWarnings("unused")
-        boolean show_toast = true;
-        @SuppressWarnings("unused")
-        boolean announce_to_chat = true;
-        @SuppressWarnings("unused")
-        boolean hidden = false;
-
-        Display(String title, String description, String iconMaterial, String frame) {
-            this.icon = new Icon(iconMaterial);
-            this.title = JsonParser.parseString("{\"text\":\"" + title + "\"}");
-            this.description = JsonParser.parseString("{\"text\":\"" + description + "\"}");
-            this.frame = frame;
-        }
-    }
-
-    private static class Icon {
-        @SuppressWarnings("unused")
-        String id;
-
-        Icon(String item) {
-            this.id = "minecraft:" + item;
-        }
-    }
-
-    private static class Criteria {
-        @SuppressWarnings("unused")
-        Trigger trigger = new Trigger();
-    }
-
-    private static class Trigger {
-        @SuppressWarnings("unused")
-        String trigger = "minecraft:impossible";
+    private JsonObject createTextComponent(String text) {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("text", text);
+        return obj;
     }
 
     public void grantHomeReturnAdvancement(Player player) {
@@ -142,28 +100,26 @@ public class AdvancementManager {
     }
 
     private void grantAdvancement(Player player, NamespacedKey key) {
-        Advancement advancement = Bukkit.getAdvancement(key);
-        if (advancement != null) {
-            AdvancementProgress progress = player.getAdvancementProgress(advancement);
-            if (!progress.isDone()) {
-                for (String criteria : progress.getRemainingCriteria()) {
-                    progress.awardCriteria(criteria);
-                }
-            }
-        } else {
-            plugin.getLogger().warning("Advancement " + key.getKey() + " not found for player " + player.getName());
+        Advancement adv = Bukkit.getAdvancement(key);
+        if (adv == null) {
+            plugin.getLogger().warning("Advancement not found: " + key);
+            return;
+        }
+
+        AdvancementProgress progress = player.getAdvancementProgress(adv);
+        if (!progress.isDone()) {
+            progress.getRemainingCriteria().forEach(progress::awardCriteria);
         }
     }
 
     private void revokeAdvancement(Player player, NamespacedKey key) {
-        Advancement advancement = Bukkit.getAdvancement(key);
-        if (advancement != null) {
-            AdvancementProgress progress = player.getAdvancementProgress(advancement);
-            if (progress.isDone()) {
-                for (String criteria : progress.getAwardedCriteria()) {
-                    progress.revokeCriteria(criteria);
-                }
-            }
+        Advancement adv = Bukkit.getAdvancement(key);
+        if (adv == null)
+            return;
+
+        AdvancementProgress progress = player.getAdvancementProgress(adv);
+        if (progress.isDone()) {
+            progress.getAwardedCriteria().forEach(progress::revokeCriteria);
         }
     }
 }

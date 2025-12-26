@@ -5,14 +5,14 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 
 public class RecipeManager {
 
     private final RecallPotionPlugin plugin;
-    private NamespacedKey recallPotionKey;
+    private final NamespacedKey recallPotionKey;
+    private static final int CUSTOM_MODEL_DATA = 12345;
 
     public RecipeManager(RecallPotionPlugin plugin) {
         this.plugin = plugin;
@@ -20,10 +20,7 @@ public class RecipeManager {
     }
 
     public void registerRecipes() {
-
-        ItemStack recallPotion = createRecallPotion();
-
-        ShapedRecipe recipe = new ShapedRecipe(recallPotionKey, recallPotion);
+        ShapedRecipe recipe = new ShapedRecipe(recallPotionKey, createRecallPotion());
         recipe.shape(" S ", "GWE", "   ");
         recipe.setIngredient('W', Material.POTION);
         recipe.setIngredient('G', Material.SCULK);
@@ -38,16 +35,12 @@ public class RecipeManager {
     }
 
     public ItemStack createRecallPotion() {
-        ItemStack potion = new ItemStack(Material.POTION);
-        PotionMeta meta = (PotionMeta) potion.getItemMeta();
-
+        PotionMeta meta = (PotionMeta) new ItemStack(Material.POTION).getItemMeta();
         meta.setBasePotionType(PotionType.WATER);
-
         meta.setDisplayName(plugin.getConfigManager().getPotionName());
         meta.setLore(plugin.getConfigManager().getPotionLore());
-
-        meta.setCustomModelData(12345);
-
+        meta.setCustomModelData(CUSTOM_MODEL_DATA);
+        ItemStack potion = new ItemStack(Material.POTION);
         potion.setItemMeta(meta);
         return potion;
     }
@@ -57,7 +50,7 @@ public class RecipeManager {
             return false;
         }
 
-        ItemMeta meta = item.getItemMeta();
-        return meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == 12345;
+        var meta = item.getItemMeta();
+        return meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == CUSTOM_MODEL_DATA;
     }
 }

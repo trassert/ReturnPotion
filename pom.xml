@@ -5,7 +5,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>recall-potion</artifactId>
-    <version>1.4.2</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
 
     <name>Return Potion</name>

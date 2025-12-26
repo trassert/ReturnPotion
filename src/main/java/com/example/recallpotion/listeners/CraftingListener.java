@@ -18,14 +18,21 @@ public class CraftingListener implements Listener {
     @EventHandler
     public void onCraftItem(CraftItemEvent event) {
         ItemStack result = event.getRecipe().getResult();
-
-        if (plugin.getRecipeManager().isRecallPotion(result)) {
-            Player player = (Player) event.getWhoClicked();
-
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                player.sendMessage(plugin.getConfigManager().getMessage("potion-obtained"));
-                player.playSound(player.getLocation(), plugin.getConfigManager().getSound("potion-obtain"), 1.0f, 1.0f);
-            }, 1L);
+        if (!plugin.getRecipeManager().isRecallPotion(result)) {
+            return;
         }
+
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            player.sendMessage(plugin.getConfigManager().getMessage("potion-obtained"));
+            player.playSound(
+                    player.getLocation(),
+                    plugin.getConfigManager().getSound("potion-obtain"),
+                    1.0f,
+                    1.0f);
+        }, 1L);
     }
 }

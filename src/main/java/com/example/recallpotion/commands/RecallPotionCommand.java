@@ -20,9 +20,11 @@ public class RecallPotionCommand implements CommandExecutor {
             return true;
         }
 
+        String version = plugin.getDescription().getVersion();
+
         if (args.length == 0) {
-            sender.sendMessage("§6RecallPotion Plugin v1.0.0");
-            sender.sendMessage("§7Использование: /recallpotion reload");
+            sender.sendMessage("§6RecallPotion Plugin v" + version);
+            sender.sendMessage("§7Использование: /" + label + " reload");
             return true;
         }
 
@@ -32,7 +34,7 @@ public class RecallPotionCommand implements CommandExecutor {
             return true;
         }
 
-        sender.sendMessage("§cНеизвестная команда. Используйте: /recallpotion reload");
+        sender.sendMessage("§cНеизвестная команда. Используйте: /" + label + " reload");
         return true;
     }
 }

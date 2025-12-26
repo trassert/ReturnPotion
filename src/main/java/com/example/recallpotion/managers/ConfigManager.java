@@ -1,8 +1,10 @@
 package com.example.recallpotion.managers;
 
-import com.example.recallpotion.RecallPotionPlugin; // Убедитесь, что здесь правильный импорт
+import com.example.recallpotion.RecallPotionPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -14,6 +16,9 @@ public class ConfigManager {
     private final RecallPotionPlugin plugin;
     private FileConfiguration config;
 
+    private static final String DEFAULT_SOUND = "minecraft:block.note_block.pling";
+    private static final String DEFAULT_ICON = "ENDER_EYE";
+
     public ConfigManager(RecallPotionPlugin plugin) {
         this.plugin = plugin;
     }
@@ -24,50 +29,69 @@ public class ConfigManager {
         this.config = plugin.getConfig();
     }
 
+    public void reloadConfig() {
+        plugin.reloadConfig();
+        this.config = plugin.getConfig();
+    }
+
     public String getMessage(String path) {
-        return ChatColor.translateAlternateColorCodes('&',
-                config.getString("messages." + path, "&cMessage not found: " + path));
+        return translate(config.getString("messages." + path, "&cMessage not found: " + path));
     }
 
-    public String getAdvancementTitle(String advancement) {
-        return config.getString("achievements." + advancement + ".title", "Default Title");
+    public String getAdvancementTitle(String key) {
+        return config.getString("achievements." + key + ".title", "Default Title");
     }
 
-    public String getAdvancementDescription(String advancement) {
-        return config.getString("achievements." + advancement + ".description", "Default Description");
+    public String getAdvancementDescription(String key) {
+        return config.getString("achievements." + key + ".description", "Default Description");
     }
 
-    public Material getAdvancementIcon(String advancement) {
-        String materialName = config.getString("achievements." + advancement + ".icon", "ENDER_EYE");
+    public Material getAdvancementIcon(String key) {
+        String name = config.getString("achievements." + key + ".icon", DEFAULT_ICON).toUpperCase();
         try {
-            return Material.valueOf(materialName.toUpperCase());
+            return Material.valueOf(name);
         } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning("Invalid material for advancement icon: " + materialName + ". Using ENDER_EYE.");
-            return Material.ENDER_EYE;
+            plugin.getLogger().warning("Invalid material: " + name + ". Using " + DEFAULT_ICON + ".");
+            return Material.valueOf(DEFAULT_ICON);
         }
     }
 
-    public String getAdvancementFrame(String advancement) {
-        String frame = config.getString("achievements." + advancement + ".frame", "task");
-        if (!frame.equalsIgnoreCase("task") && !frame.equalsIgnoreCase("challenge")
-                && !frame.equalsIgnoreCase("goal")) {
-            plugin.getLogger().warning("Invalid frame for advancement: " + frame + ". Using 'task'.");
+    public String getAdvancementFrame(String key) {
+        String frame = config.getString("achievements." + key + ".frame", "task").toLowerCase();
+        if (!frame.equals("task") && !frame.equals("challenge") && !frame.equals("goal")) {
+            plugin.getLogger().warning("Invalid advancement frame: " + frame + ". Using 'task'.");
             return "task";
         }
         return frame;
     }
 
-    public String getAdvancementParent(String advancement) {
-        return config.getString("achievements." + advancement + ".parent", "minecraft:adventure/root");
+    public String getAdvancementParent(String key) {
+        return config.getString("achievements." + key + ".parent", "minecraft:adventure/root");
     }
 
-    @SuppressWarnings("removal")
     public Sound getSound(String path) {
+        String raw = config.getString("sounds." + path, DEFAULT_SOUND);
+        NamespacedKey key;
+
         try {
-            return Sound.valueOf(config.getString("sounds." + path, "BLOCK_NOTE_BLOCK_PLING"));
-        } catch (IllegalArgumentException e) {
-            return Sound.BLOCK_NOTE_BLOCK_PLING;
+            if (raw.indexOf(':') == -1) {
+                String modern = raw.toLowerCase().replace('_', '.');
+                key = NamespacedKey.minecraft(modern);
+            } else {
+                String[] parts = raw.split(":", 2);
+                key = new NamespacedKey(parts[0], parts[1]);
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Malformed sound key: " + raw + ". Using fallback.");
+            key = NamespacedKey.minecraft("block.note_block.pling");
         }
+
+        Sound sound = Registry.SOUNDS.get(key);
+        if (sound == null) {
+            plugin.getLogger().warning("Unknown sound: " + key + ". Using fallback.");
+            sound = Registry.SOUNDS.get(NamespacedKey.minecraft("block.note_block.pling"));
+        }
+        return sound;
     }
 
     public int getXpCost() {
@@ -75,18 +99,16 @@ public class ConfigManager {
     }
 
     public String getPotionName() {
-        return ChatColor.translateAlternateColorCodes('&',
-                config.getString("settings.potion-name", "&dЗелье возврата"));
+        return translate(config.getString("settings.potion-name", "&dЗелье возврата"));
     }
 
     public List<String> getPotionLore() {
         return config.getStringList("settings.potion-lore").stream()
-                .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                .map(this::translate)
                 .collect(Collectors.toList());
     }
 
-    public void reloadConfig() {
-        plugin.reloadConfig();
-        this.config = plugin.getConfig();
+    private String translate(String input) {
+        return ChatColor.translateAlternateColorCodes('&', input);
     }
 }

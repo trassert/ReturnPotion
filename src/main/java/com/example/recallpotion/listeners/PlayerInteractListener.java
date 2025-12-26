@@ -26,42 +26,41 @@ public class PlayerInteractListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-
         if (event.getItem() != null && plugin.getRecipeManager().isRecallPotion(event.getItem())) {
             return;
         }
 
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
-                event.getClickedBlock() != null &&
-                event.getClickedBlock().getType() == Material.END_PORTAL) {
-
-            if (event.getHand() == EquipmentSlot.HAND) {
-                ItemStack itemInHand = player.getInventory().getItemInMainHand();
-                if (itemInHand.getType() != Material.GLASS_BOTTLE) {
-                    return;
-                }
-
-                if (player.getLevel() >= plugin.getConfigManager().getXpCost()) {
-
-                    player.setLevel(player.getLevel() - plugin.getConfigManager().getXpCost());
-
-                    ItemStack recallPotion = plugin.getRecipeManager().createRecallPotion();
-                    player.getInventory().addItem(recallPotion);
-
-                    player.sendMessage(plugin.getConfigManager().getMessage("portal-extract-success"));
-                    player.playSound(player.getLocation(), plugin.getConfigManager().getSound("portal-extract"), 1.0f,
-                            1.0f);
-
-                    plugin.getAdvancementManager().grantPortalExtractAdvancement(player);
-
-                    event.setCancelled(true);
-                } else {
-                    player.sendMessage(plugin.getConfigManager().getMessage("not-enough-xp"));
-                    event.setCancelled(true);
-                }
-            }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK ||
+                event.getClickedBlock() == null ||
+                event.getClickedBlock().getType() != Material.END_PORTAL ||
+                event.getHand() != EquipmentSlot.HAND) {
+            return;
         }
+
+        Player player = event.getPlayer();
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+
+        if (itemInHand.getType() != Material.GLASS_BOTTLE) {
+            return;
+        }
+
+        int xpCost = plugin.getConfigManager().getXpCost();
+        if (player.getLevel() < xpCost) {
+            player.sendMessage(plugin.getConfigManager().getMessage("not-enough-xp"));
+            event.setCancelled(true);
+            return;
+        }
+
+        player.setLevel(player.getLevel() - xpCost);
+
+        ItemStack recallPotion = plugin.getRecipeManager().createRecallPotion();
+        player.getInventory().addItem(recallPotion);
+
+        player.sendMessage(plugin.getConfigManager().getMessage("portal-extract-success"));
+        player.playSound(player.getLocation(), plugin.getConfigManager().getSound("portal-extract"), 1.0f, 1.0f);
+        plugin.getAdvancementManager().grantPortalExtractAdvancement(player);
+
+        event.setCancelled(true);
     }
 
     public void performRecallTeleport(Player player) {
@@ -69,27 +68,24 @@ public class PlayerInteractListener implements Listener {
             player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
             return;
         }
-        Location homeLocation = player.getBedSpawnLocation();
 
-        if (homeLocation == null) {
-
-            homeLocation = player.getLocation();
+        Location home = player.getBedSpawnLocation();
+        if (home == null) {
+            home = player.getLocation();
             player.sendMessage(plugin.getConfigManager().getMessage("no-home-set"));
-            return;
         }
 
-        final Location finalHomeLocation = homeLocation;
-        final Location departureLocation = player.getLocation().clone();
+        final Location finalHome = home;
+        Location departure = player.getLocation().clone();
 
         player.sendMessage(plugin.getConfigManager().getMessage("potion-used"));
         player.playSound(player.getLocation(), plugin.getConfigManager().getSound("potion-use"), 1.0f, 1.0f);
+        createTeleportParticles(player, departure, true);
 
-        createTeleportParticles(player, departureLocation, true);
+        player.getScheduler().runDelayed(plugin, task -> {
+            player.teleportAsync(finalHome);
 
-        player.getScheduler().runDelayed(plugin, scheduledTask -> {
-            player.teleportAsync(finalHomeLocation);
-
-            player.getScheduler().runDelayed(plugin, scheduledTask2 -> {
+            player.getScheduler().runDelayed(plugin, task2 -> {
                 createTeleportParticles(player, player.getLocation(), false);
                 plugin.getAdvancementManager().grantHomeReturnAdvancement(player);
             }, null, 5L);
@@ -97,8 +93,8 @@ public class PlayerInteractListener implements Listener {
     }
 
     private void createTeleportParticles(Player player, Location location, boolean scatter) {
-        int count = 30;
-        double speed = 0.1;
+        final int count = 30;
+        final double speed = 0.1;
 
         for (int i = 0; i < count; i++) {
             double offsetX = (random.nextDouble() * 2 - 1) * 0.5;
@@ -109,12 +105,15 @@ public class PlayerInteractListener implements Listener {
 
             Vector velocity;
             if (scatter) {
-                velocity = new Vector(random.nextDouble() * 2 - 1, random.nextDouble() * 2 - 1,
+                velocity = new Vector(
+                        random.nextDouble() * 2 - 1,
+                        random.nextDouble() * 2 - 1,
                         random.nextDouble() * 2 - 1).normalize().multiply(speed);
             } else {
-                Vector directionToPlayer = player.getEyeLocation().toVector().subtract(particleLoc.toVector())
+                Vector direction = player.getEyeLocation().toVector()
+                        .subtract(particleLoc.toVector())
                         .normalize();
-                velocity = directionToPlayer.multiply(speed);
+                velocity = direction.multiply(speed);
             }
 
             player.spawnParticle(Particle.END_ROD, particleLoc, 0, velocity.getX(), velocity.getY(), velocity.getZ());
