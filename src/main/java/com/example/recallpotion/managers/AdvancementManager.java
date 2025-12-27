@@ -67,7 +67,11 @@ public class AdvancementManager {
         JsonObject display = new JsonObject();
         display.add("title", createTextComponent(title));
         display.add("description", createTextComponent(description));
-        display.addProperty("icon", "minecraft:" + icon.name().toLowerCase());
+
+        JsonObject iconObj = new JsonObject();
+        iconObj.addProperty("item", "minecraft:" + icon.name().toLowerCase());
+        display.add("icon", iconObj);
+
         display.addProperty("frame", frame);
         display.addProperty("show_toast", true);
         display.addProperty("announce_to_chat", true);
