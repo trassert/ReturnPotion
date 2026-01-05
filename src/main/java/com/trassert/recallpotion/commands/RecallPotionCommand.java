@@ -1,6 +1,6 @@
-package com.example.recallpotion.commands;
+package com.trassert.recallpotion.commands;
 
-import com.example.recallpotion.RecallPotionPlugin;
+import com.trassert.recallpotion.RecallPotionPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

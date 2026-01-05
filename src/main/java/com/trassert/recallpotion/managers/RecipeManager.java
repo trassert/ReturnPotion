@@ -1,6 +1,6 @@
-package com.example.recallpotion.managers;
+package com.trassert.recallpotion.managers;
 
-import com.example.recallpotion.RecallPotionPlugin;
+import com.trassert.recallpotion.RecallPotionPlugin;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;

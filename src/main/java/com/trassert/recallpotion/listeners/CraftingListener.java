@@ -1,6 +1,6 @@
-package com.example.recallpotion.listeners;
+package com.trassert.recallpotion.listeners;
 
-import com.example.recallpotion.RecallPotionPlugin;
+import com.trassert.recallpotion.RecallPotionPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

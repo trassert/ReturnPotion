@@ -1,8 +1,8 @@
-package com.example.recallpotion;
+package com.trassert.recallpotion;
 
-import com.example.recallpotion.commands.RecallPotionCommand;
-import com.example.recallpotion.listeners.*;
-import com.example.recallpotion.managers.*;
+import com.trassert.recallpotion.commands.RecallPotionCommand;
+import com.trassert.recallpotion.listeners.*;
+import com.trassert.recallpotion.managers.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class RecallPotionPlugin extends JavaPlugin {

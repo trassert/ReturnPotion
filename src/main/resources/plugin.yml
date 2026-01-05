@@ -1,6 +1,6 @@
 name: RecallPotion
 version: ${project.version}
-main: com.example.recallpotion.RecallPotionPlugin
+main: com.trassert.recallpotion.RecallPotionPlugin
 api-version: '1.21'
 description: A plugin that adds recall potions to Minecraft
 author: trassert

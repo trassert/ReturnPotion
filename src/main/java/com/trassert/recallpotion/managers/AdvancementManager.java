@@ -1,6 +1,6 @@
-package com.example.recallpotion.managers;
+package com.trassert.recallpotion.managers;
 
-import com.example.recallpotion.RecallPotionPlugin;
+import com.trassert.recallpotion.RecallPotionPlugin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
