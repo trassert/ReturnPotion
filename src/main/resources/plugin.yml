@@ -1,7 +1,7 @@
 name: RecallPotion
 version: ${project.version}
 main: com.trassert.recallpotion.RecallPotionPlugin
-api-version: '1.21'
+api-version: '1.21.11'
 description: A plugin that adds recall potions to Minecraft
 author: trassert
 folia-supported: true
