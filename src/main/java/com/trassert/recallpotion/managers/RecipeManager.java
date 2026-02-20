@@ -7,6 +7,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RecipeManager {
 
@@ -37,9 +41,16 @@ public class RecipeManager {
     public ItemStack createRecallPotion() {
         PotionMeta meta = (PotionMeta) new ItemStack(Material.POTION).getItemMeta();
         meta.setBasePotionType(PotionType.WATER);
-        meta.setDisplayName(plugin.getConfigManager().getPotionName());
-        meta.setLore(plugin.getConfigManager().getPotionLore());
-        meta.setCustomModelData(CUSTOM_MODEL_DATA);
+        Component nameComp = LegacyComponentSerializer.legacyAmpersand()
+            .deserialize(plugin.getConfigManager().getPotionName());
+        meta.displayName(nameComp);
+
+        List<Component> loreComp = plugin.getConfigManager().getPotionLore().stream()
+            .map(s -> LegacyComponentSerializer.legacyAmpersand().deserialize(s))
+            .collect(Collectors.toList());
+        meta.lore(loreComp);
+
+        unsafeSetCustomModelData(meta, CUSTOM_MODEL_DATA);
         ItemStack potion = new ItemStack(Material.POTION);
         potion.setItemMeta(meta);
         return potion;
@@ -51,6 +62,21 @@ public class RecipeManager {
         }
 
         var meta = item.getItemMeta();
-        return meta != null && meta.hasCustomModelData() && meta.getCustomModelData() == CUSTOM_MODEL_DATA;
+        return meta != null && unsafeHasCustomModelData(meta) && unsafeGetCustomModelData(meta) == CUSTOM_MODEL_DATA;
+    }
+
+    @SuppressWarnings("deprecation")
+    private void unsafeSetCustomModelData(PotionMeta meta, int value) {
+        meta.setCustomModelData(value);
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean unsafeHasCustomModelData(org.bukkit.inventory.meta.ItemMeta meta) {
+        return meta.hasCustomModelData();
+    }
+
+    @SuppressWarnings("deprecation")
+    private int unsafeGetCustomModelData(org.bukkit.inventory.meta.ItemMeta meta) {
+        return meta.getCustomModelData();
     }
 }

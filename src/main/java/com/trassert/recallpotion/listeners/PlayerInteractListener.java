@@ -54,7 +54,13 @@ public class PlayerInteractListener implements Listener {
         player.setLevel(player.getLevel() - xpCost);
 
         ItemStack recallPotion = plugin.getRecipeManager().createRecallPotion();
-        player.getInventory().addItem(recallPotion);
+        if (itemInHand.getAmount() > 1) {
+            itemInHand.setAmount(itemInHand.getAmount() - 1);
+            player.getInventory().setItemInMainHand(itemInHand);
+            player.getInventory().addItem(recallPotion);
+        } else {
+            player.getInventory().setItemInMainHand(recallPotion);
+        }
 
         player.sendMessage(plugin.getConfigManager().getMessage("portal-extract-success"));
         player.playSound(player.getLocation(), plugin.getConfigManager().getSound("portal-extract"), 1.0f, 1.0f);
@@ -69,7 +75,7 @@ public class PlayerInteractListener implements Listener {
             return;
         }
 
-        Location home = player.getBedSpawnLocation();
+        Location home = player.getRespawnLocation();
         if (home == null) {
             home = player.getLocation();
             player.sendMessage(plugin.getConfigManager().getMessage("no-home-set"));

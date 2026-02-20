@@ -1,7 +1,7 @@
 package com.trassert.recallpotion.managers;
 
 import com.trassert.recallpotion.RecallPotionPlugin;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -109,6 +109,8 @@ public class ConfigManager {
     }
 
     private String translate(String input) {
-        return ChatColor.translateAlternateColorCodes('&', input);
+        if (input == null) return "";
+        var component = LegacyComponentSerializer.legacyAmpersand().deserialize(input);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 }

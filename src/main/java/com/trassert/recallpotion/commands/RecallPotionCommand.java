@@ -20,7 +20,7 @@ public class RecallPotionCommand implements CommandExecutor {
             return true;
         }
 
-        String version = plugin.getDescription().getVersion();
+        String version = plugin.getPluginMeta().getVersion();
 
         if (args.length == 0) {
             sender.sendMessage("§6RecallPotion Plugin v" + version);

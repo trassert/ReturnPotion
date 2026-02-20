@@ -42,7 +42,7 @@ public class AdvancementManager {
                 cfg.getAdvancementParent(configPath));
 
         try {
-            Bukkit.getUnsafe().loadAdvancement(key, json);
+            unsafeLoadAdvancement(key, json);
             plugin.getLogger().info("Registered advancement: " + key.getKey());
         } catch (IllegalArgumentException e) {
             plugin.getLogger().log(Level.WARNING,
@@ -56,9 +56,19 @@ public class AdvancementManager {
             revokeAdvancement(player, portalExtractKey);
         }
 
-        Bukkit.getUnsafe().removeAdvancement(homeReturnKey);
-        Bukkit.getUnsafe().removeAdvancement(portalExtractKey);
+        unsafeRemoveAdvancement(homeReturnKey);
+        unsafeRemoveAdvancement(portalExtractKey);
         plugin.getLogger().info("Unregistered custom advancements.");
+    }
+
+    @SuppressWarnings("deprecation")
+    private void unsafeLoadAdvancement(NamespacedKey key, String json) {
+        plugin.getServer().getUnsafe().loadAdvancement(key, json);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void unsafeRemoveAdvancement(NamespacedKey key) {
+        plugin.getServer().getUnsafe().removeAdvancement(key);
     }
 
     private String createAdvancementJson(String title, String description, Material icon, String frame, String parent) {
