@@ -1,6 +1,5 @@
 package com.trassert.recallpotion;
 
-import com.trassert.recallpotion.commands.RecallPotionCommand;
 import com.trassert.recallpotion.listeners.*;
 import com.trassert.recallpotion.managers.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,7 +25,10 @@ public class RecallPotionPlugin extends JavaPlugin {
         pm.registerEvents(new CraftingListener(this), this);
         pm.registerEvents(new PlayerConsumeListener(this), this);
 
-        getCommand("recallpotion").setExecutor(new RecallPotionCommand(this));
+        var recallCmd = getCommand("recallpotion");
+        var recallExecutor = new com.trassert.recallpotion.commands.RecallPotionCommand(this);
+        recallCmd.setExecutor(recallExecutor);
+        recallCmd.setTabCompleter((org.bukkit.command.TabCompleter) recallExecutor);
 
         getLogger().info("RecallPotion plugin has been enabled!");
     }

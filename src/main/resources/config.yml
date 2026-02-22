@@ -1,5 +1,11 @@
 messages:
   potion-obtained: "&a✨ You've obtained a return potion! Use it to get back home."
+  usage: "&7Использование: /{label} give [ник] | reload"
+  player-only: "&cЭту команду может выполнять только игрок."
+  player-not-found: "&cИгрок не найден: {player}"
+  give-self: "&aВы получили зелье возврата."
+  give-other: "&aЗелье выдано игроку &f{player}"
+  unknown-command: "&cНеизвестная команда. Используйте: /{label} reload"
   potion-used: "&6🏠 Teleporting to your spawn point... ✨"
   no-home-set: "&cYou don't have a spawn point set! Sleep in a bed or use /spawnpoint."
   not-enough-xp: "&cNot enough XP! Requires 8 levels of experience."
