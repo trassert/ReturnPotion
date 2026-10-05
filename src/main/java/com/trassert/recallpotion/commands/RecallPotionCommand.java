@@ -5,15 +5,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.command.TabCompleter;
-import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RecallPotionCommand implements CommandExecutor, TabCompleter {
+
+    private static final String ADMIN_PERMISSION = "recallpotion.admin";
 
     private final RecallPotionPlugin plugin;
 
@@ -23,74 +26,74 @@ public class RecallPotionCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("recallpotion.admin")) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+        if (!sender.hasPermission(ADMIN_PERMISSION)) {
+            msg(sender, "no-permission");
             return true;
         }
-
-        String version = plugin.getPluginMeta().getVersion();
 
         if (args.length == 0) {
-            sender.sendMessage("§6RecallPotion Plugin v" + version);
-            String usage = plugin.getConfigManager().getMessage("usage").replace("{label}", label);
-            sender.sendMessage(usage);
+            sender.sendMessage("§6RecallPotion Plugin v" + plugin.getPluginMeta().getVersion());
+            msg(sender, "usage", "{label}", label);
             return true;
         }
 
-        if (args[0].equalsIgnoreCase("give")) {
-            if (args.length == 1) {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage(plugin.getConfigManager().getMessage("player-only"));
-                    return true;
-                }
-                Player player = (Player) sender;
-                ItemStack potion = plugin.getRecipeManager().createRecallPotion();
-                player.getInventory().addItem(potion);
-                player.sendMessage(plugin.getConfigManager().getMessage("potion-obtained"));
-                player.sendMessage(plugin.getConfigManager().getMessage("give-self"));
-                return true;
-            } else {
-                Player target = Bukkit.getPlayerExact(args[1]);
-                if (target == null) {
-                    sender.sendMessage(plugin.getConfigManager().getMessage("player-not-found").replace("{player}", args[1]));
-                    return true;
-                }
-                ItemStack potion = plugin.getRecipeManager().createRecallPotion();
-                target.getInventory().addItem(potion);
-                target.sendMessage(plugin.getConfigManager().getMessage("potion-obtained"));
-                sender.sendMessage(plugin.getConfigManager().getMessage("give-other").replace("{player}", target.getName()));
-                return true;
+        switch (args[0].toLowerCase()) {
+            case "give" -> handleGive(sender, args);
+            case "reload" -> {
+                plugin.getConfigManager().reloadConfig();
+                msg(sender, "config-reloaded");
             }
+            default -> sender.sendMessage("§cНеизвестная команда. Используйте: /" + label + " reload");
         }
-
-        if (args[0].equalsIgnoreCase("reload")) {
-            plugin.getConfigManager().reloadConfig();
-            sender.sendMessage(plugin.getConfigManager().getMessage("config-reloaded"));
-            return true;
-        }
-
-        sender.sendMessage("§cНеизвестная команда. Используйте: /" + label + " reload");
         return true;
+    }
+
+    private void handleGive(CommandSender sender, String[] args) {
+        if (args.length == 1) {
+            if (!(sender instanceof Player player)) {
+                msg(sender, "player-only");
+                return;
+            }
+            player.getInventory().addItem(plugin.getRecipeManager().createRecallPotion());
+            msg(player, "potion-obtained");
+            msg(player, "give-self");
+            return;
+        }
+
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            msg(sender, "player-not-found", "{player}", args[1]);
+            return;
+        }
+
+        target.getScheduler().run(plugin, task -> {
+            target.getInventory().addItem(plugin.getRecipeManager().createRecallPotion());
+            msg(target, "potion-obtained");
+            msg(sender, "give-other", "{player}", target.getName());
+        }, null);
+    }
+
+    private void msg(CommandSender sender, String key, String... replacements) {
+        String message = plugin.getConfigManager().getMessage(key);
+        for (int i = 0; i + 1 < replacements.length; i += 2) {
+            message = message.replace(replacements[i], replacements[i + 1]);
+        }
+        sender.sendMessage(message);
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            List<String> subs = new ArrayList<>();
-            subs.add("give");
-            subs.add("reload");
-            String pref = args[0].toLowerCase();
-            return subs.stream().filter(s -> s.startsWith(pref)).collect(Collectors.toList());
+            return filter(Stream.of("give", "reload"), args[0]);
         }
-
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
-            String pref = args[1].toLowerCase();
-            return Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
-                    .filter(n -> n.toLowerCase().startsWith(pref))
-                    .collect(Collectors.toList());
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName), args[1]);
         }
-
         return Collections.emptyList();
+    }
+
+    private List<String> filter(Stream<String> source, String prefix) {
+        String lower = prefix.toLowerCase();
+        return source.filter(s -> s.toLowerCase().startsWith(lower)).collect(Collectors.toList());
     }
 }
