@@ -26,14 +26,15 @@ public class PlayerInteractListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getItem() != null && plugin.getRecipeManager().isRecallPotion(event.getItem())) {
+        ItemStack item = event.getItem();
+        if (item != null && plugin.getRecipeManager().isRecallPotion(item)) {
             return;
         }
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK ||
-                event.getClickedBlock() == null ||
-                event.getClickedBlock().getType() != Material.END_PORTAL ||
-                event.getHand() != EquipmentSlot.HAND) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK
+                || event.getClickedBlock() == null
+                || event.getClickedBlock().getType() != Material.END_PORTAL
+                || event.getHand() != EquipmentSlot.HAND) {
             return;
         }
 
@@ -46,7 +47,7 @@ public class PlayerInteractListener implements Listener {
 
         int xpCost = plugin.getConfigManager().getXpCost();
         if (player.getLevel() < xpCost) {
-            player.sendMessage(plugin.getConfigManager().getMessage("not-enough-xp"));
+            msg(player, "not-enough-xp");
             event.setCancelled(true);
             return;
         }
@@ -57,44 +58,55 @@ public class PlayerInteractListener implements Listener {
         if (itemInHand.getAmount() > 1) {
             itemInHand.setAmount(itemInHand.getAmount() - 1);
             player.getInventory().setItemInMainHand(itemInHand);
-            player.getInventory().addItem(recallPotion);
+            var leftover = player.getInventory().addItem(recallPotion);
+            leftover.values().forEach(drop ->
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop));
         } else {
             player.getInventory().setItemInMainHand(recallPotion);
         }
 
-        player.sendMessage(plugin.getConfigManager().getMessage("portal-extract-success"));
-        player.playSound(player.getLocation(), plugin.getConfigManager().getSound("portal-extract"), 1.0f, 1.0f);
+        msg(player, "portal-extract-success");
+        playSound(player, "portal-extract");
         plugin.getAdvancementManager().grantPortalExtractAdvancement(player);
 
         event.setCancelled(true);
     }
 
-    public void performRecallTeleport(Player player) {
+    public boolean canRecall(Player player) {
         if (!player.hasPermission("recallpotion.use")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
-            return;
+            msg(player, "no-permission");
+            return false;
         }
+        if (player.getRespawnLocation() == null) {
+            msg(player, "no-home-set");
+            return false;
+        }
+        return true;
+    }
 
+    public void performRecallTeleport(Player player) {
         Location home = player.getRespawnLocation();
         if (home == null) {
-            home = player.getLocation();
-            player.sendMessage(plugin.getConfigManager().getMessage("no-home-set"));
+            msg(player, "no-home-set");
+            return;
         }
 
         final Location finalHome = home;
         Location departure = player.getLocation().clone();
 
-        player.sendMessage(plugin.getConfigManager().getMessage("potion-used"));
-        player.playSound(player.getLocation(), plugin.getConfigManager().getSound("potion-use"), 1.0f, 1.0f);
+        msg(player, "potion-used");
+        playSound(player, "potion-use");
         createTeleportParticles(player, departure, true);
 
         player.getScheduler().runDelayed(plugin, task -> {
-            player.teleportAsync(finalHome);
-
-            player.getScheduler().runDelayed(plugin, task2 -> {
-                createTeleportParticles(player, player.getLocation(), false);
-                plugin.getAdvancementManager().grantHomeReturnAdvancement(player);
-            }, null, 5L);
+            player.teleportAsync(finalHome).thenAccept(success -> {
+                if (Boolean.TRUE.equals(success)) {
+                    player.getScheduler().runDelayed(plugin, task2 -> {
+                        createTeleportParticles(player, player.getLocation(), false);
+                        plugin.getAdvancementManager().grantHomeReturnAdvancement(player);
+                    }, null, 5L);
+                }
+            });
         }, null, 20L);
     }
 
@@ -122,7 +134,17 @@ public class PlayerInteractListener implements Listener {
                 velocity = direction.multiply(speed);
             }
 
-            player.spawnParticle(Particle.END_ROD, particleLoc, 0, velocity.getX(), velocity.getY(), velocity.getZ());
+            player.spawnParticle(Particle.END_ROD, particleLoc, 0,
+                    velocity.getX(), velocity.getY(), velocity.getZ());
         }
+    }
+
+    private void msg(Player player, String key) {
+        player.sendMessage(plugin.getConfigManager().getMessage(key));
+    }
+
+    private void playSound(Player player, String key) {
+        player.playSound(player.getLocation(),
+                plugin.getConfigManager().getSound(key), 1.0f, 1.0f);
     }
 }
