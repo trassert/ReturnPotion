@@ -2,6 +2,8 @@ package com.trassert.recallpotion;
 
 import com.trassert.recallpotion.listeners.*;
 import com.trassert.recallpotion.managers.*;
+import io.papermc.paper.ServerBuildInfo;
+import net.kyori.adventure.key.Key;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class RecallPotionPlugin extends JavaPlugin {
@@ -30,7 +32,8 @@ public class RecallPotionPlugin extends JavaPlugin {
         recallCmd.setExecutor(recallExecutor);
         recallCmd.setTabCompleter((org.bukkit.command.TabCompleter) recallExecutor);
 
-        getLogger().info("RecallPotion plugin has been enabled!");
+        String brand = ServerBuildInfo.buildInfo().brandName();
+        getLogger().info("RecallPotion plugin has been enabled on " + brand + "!");
     }
 
     @Override
