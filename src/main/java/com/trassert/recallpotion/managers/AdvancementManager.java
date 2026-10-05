@@ -11,13 +11,11 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.entity.Player;
 
-import java.util.logging.Level;
-
 public class AdvancementManager {
 
-    private final RecallPotionPlugin plugin;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+    private final RecallPotionPlugin plugin;
     private final NamespacedKey homeReturnKey;
     private final NamespacedKey portalExtractKey;
 
@@ -45,15 +43,17 @@ public class AdvancementManager {
             unsafeLoadAdvancement(key, json);
             plugin.getLogger().info("Registered advancement: " + key.getKey());
         } catch (IllegalArgumentException e) {
-            plugin.getLogger().log(Level.WARNING,
+            plugin.getLogger().warning(
                     "Advancement '" + key.getKey() + "' may already exist: " + e.getMessage());
         }
     }
 
     public void unregisterAdvancements() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            revokeAdvancement(player, homeReturnKey);
-            revokeAdvancement(player, portalExtractKey);
+            player.getScheduler().run(plugin, task -> {
+                revokeAdvancement(player, homeReturnKey);
+                revokeAdvancement(player, portalExtractKey);
+            }, null);
         }
 
         unsafeRemoveAdvancement(homeReturnKey);
@@ -71,7 +71,8 @@ public class AdvancementManager {
         plugin.getServer().getUnsafe().removeAdvancement(key);
     }
 
-    private String createAdvancementJson(String title, String description, Material icon, String frame, String parent) {
+    private String createAdvancementJson(String title, String description, Material icon,
+                                         String frame, String parent) {
         JsonObject root = new JsonObject();
 
         JsonObject display = new JsonObject();
@@ -114,7 +115,7 @@ public class AdvancementManager {
     }
 
     private void grantAdvancement(Player player, NamespacedKey key) {
-        Advancement adv = Bukkit.getAdvancement(key);
+        Advancement adv = plugin.getServer().getAdvancement(key);
         if (adv == null) {
             plugin.getLogger().warning("Advancement not found: " + key);
             return;
@@ -127,9 +128,10 @@ public class AdvancementManager {
     }
 
     private void revokeAdvancement(Player player, NamespacedKey key) {
-        Advancement adv = Bukkit.getAdvancement(key);
-        if (adv == null)
+        Advancement adv = plugin.getServer().getAdvancement(key);
+        if (adv == null) {
             return;
+        }
 
         AdvancementProgress progress = player.getAdvancementProgress(adv);
         if (progress.isDone()) {
