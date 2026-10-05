@@ -4,6 +4,7 @@ import com.trassert.recallpotion.RecallPotionPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class PlayerConsumeListener implements Listener {
@@ -22,11 +23,20 @@ public class PlayerConsumeListener implements Listener {
             return;
         }
 
+        var player = event.getPlayer();
+
+        if (!playerInteractListener.canRecall(player)) {
+            event.setCancelled(true);
+            return;
+        }
+
         event.setCancelled(true);
 
-        var player = event.getPlayer();
         var originalItem = event.getItem();
-        int slot = player.getInventory().getHeldItemSlot();
+        EquipmentSlot hand = event.getHand();
+        int slot = (hand == EquipmentSlot.HAND)
+                ? player.getInventory().getHeldItemSlot()
+                : 40; // offhand slot
 
         player.getScheduler().run(plugin, task -> {
             playerInteractListener.performRecallTeleport(player);
