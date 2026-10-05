@@ -99,13 +99,11 @@ public class ConfigManager {
     }
 
     public String getPotionName() {
-        return translate(config.getString("settings.potion-name", "&dЗелье возврата"));
+        return config.getString("settings.potion-name", "&dЗелье возврата");
     }
 
     public List<String> getPotionLore() {
-        return config.getStringList("settings.potion-lore").stream()
-                .map(this::translate)
-                .collect(Collectors.toList());
+        return config.getStringList("settings.potion-lore");
     }
 
     private String translate(String input) {
