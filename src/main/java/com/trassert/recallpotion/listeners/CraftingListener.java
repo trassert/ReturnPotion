@@ -26,13 +26,13 @@ public class CraftingListener implements Listener {
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+        player.getScheduler().runDelayed(plugin, task -> {
             player.sendMessage(plugin.getConfigManager().getMessage("potion-obtained"));
             player.playSound(
                     player.getLocation(),
                     plugin.getConfigManager().getSound("potion-obtain"),
                     1.0f,
                     1.0f);
-        }, 1L);
+        }, null, 1L);
     }
 }
