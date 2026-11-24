@@ -31,6 +31,7 @@ public class AdvancementManager {
     }
 
     private void registerAdvancement(NamespacedKey key, String configPath) {
+        if (plugin.getServer().getAdvancement(key) != null) return;
         var cfg = plugin.getConfigManager();
         String json = createAdvancementJson(
                 cfg.getAdvancementTitle(configPath),
@@ -39,13 +40,8 @@ public class AdvancementManager {
                 cfg.getAdvancementFrame(configPath),
                 cfg.getAdvancementParent(configPath));
 
-        try {
-            unsafeLoadAdvancement(key, json);
-            plugin.getLogger().info("Registered advancement: " + key.getKey());
-        } catch (IllegalArgumentException e) {
-            plugin.getLogger().warning(
-                    "Advancement '" + key.getKey() + "' may already exist: " + e.getMessage());
-        }
+        unsafeLoadAdvancement(key, json);
+        plugin.getLogger().info("Registered advancement: " + key.getKey());
     }
 
     public void unregisterAdvancements() {
