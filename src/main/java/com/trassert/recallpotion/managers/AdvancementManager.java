@@ -49,11 +49,10 @@ public class AdvancementManager {
     }
 
     public void unregisterAdvancements() {
+        if (!plugin.isEnabled()) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.getScheduler().run(plugin, task -> {
-                revokeAdvancement(player, homeReturnKey);
-                revokeAdvancement(player, portalExtractKey);
-            }, null);
+            revokeAdvancement(player, homeReturnKey);
+            revokeAdvancement(player, portalExtractKey);
         }
 
         unsafeRemoveAdvancement(homeReturnKey);
